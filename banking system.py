@@ -1,11 +1,23 @@
 import random
 import json
+from datetime import datetime
+from os import remove
 
-new_staff_list = []
-count=1
+
+time=datetime.now(tz=None)
 
 
-# getting staff details
+#loggin out function
+def logout():
+    session_log=open('session.txt','a')
+    #session_log.write(f'{time}:@ {details[0]}logged out\n')
+    session_log.close()
+    remove('session.txt')
+    homepage()
+
+
+
+# getting staff details to login
 def get_details():
     user_name = input('Enter your username: ')
     user_password = input('Enter your password: ')
@@ -18,19 +30,18 @@ def get_details():
 def check_acct():
     check_acct_number=input('Enter Account Number: ')
     customer_file=open('customer.txt','r').read()
-    customer_details=customer_file.splitlines()
-    count=0
+    customer_details_list=customer_file.splitlines()
+    count=1
     found=False
-    print(len(customer_details))
-    for item in customer_details:
+    for item in customer_details_list:
         details=json.loads(item)
         if check_acct_number==details['Account Number']:
             print(details)
             found=True
-        if count==len(customer_details) and not found:
+        if count==len(customer_details_list) and not found:
             print('Account does not exist')
         count+=1
-        action()
+    action()
 
 
 
@@ -66,29 +77,51 @@ def action():
         create_acct()
     elif login_success==2:
         check_acct()
+    elif login_success==3:
+        logout()
+    else:
+        print('invalid input')
+        action()
 
 
 
+def login():
 
-# main project
-# staff logging in
-while True:
+
+    new_staff_list = []
+    details = get_details()
+    staff_details = open('staff.txt')
+    staff_list = staff_details.read()
+    staff_lists = staff_list.splitlines()
+    for staff in staff_lists:
+        new_staff_list.append(staff.split())
+        # print(new_staff_list)
+    count = 1
+    logged = False
+    for item in new_staff_list:
+        if details[0] == item[0] and details[1] == item[1]:
+            logged = True
+            session_logged=open('session.txt','w+')
+            #session_logged.write(f'{time}:@{details[0]} logged in\n')
+            session_logged.close()
+            action()
+        if count==len(new_staff_list) and not logged :
+            print('invalid username or password')
+        count+=1
+    login()
+
+#homepage login
+def homepage():
+
     staff_login = input('Enter login if you would like to login or No if you want to close the app: ').upper()
     if staff_login == 'LOGIN':
-        while True:
-            details = get_details()
-            staff_details = open('staff.txt')
-            staff_list = staff_details.read()
-            staff_lists = staff_list.splitlines()
-            for staff in staff_lists:
-                new_staff_list.append(staff.split())
-                # print(new_staff_list)
-            count = 1
-            logged = False
-            for item in new_staff_list:
-                if details[0] == item[0] and details[1] == item[1]:
-                    logged = True
-                    action()
-                if count==len(new_staff_list) and not logged :
-                    print('invalid username or password')
-                count+=1
+        login()
+    elif staff_login=='NO':
+        exit(0)
+    else:
+        print('invalid input')
+        homepage()
+
+
+#main project
+homepage()
